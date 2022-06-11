@@ -1,0 +1,7 @@
+.table--row:hover .deleteButton{
+  display: block!important;
+}
+.deleteButton{
+  display: none !important;
+
+}
