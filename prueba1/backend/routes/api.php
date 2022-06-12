@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/users',[UserController::class, 'index']);
 Route::get('/users/{id}',[UserController::class, 'show']);
+Route::get('/csv/export',[CSVController::class, 'export']);
+
 Route::delete('/users/{id}',[UserController::class, 'delete']);
 
 Route::post('/users/filter',[UserController::class, 'filter']);

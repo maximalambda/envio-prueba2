@@ -94,7 +94,6 @@ class UserController extends Controller
                 }
             }
         }
-        return response(['results' => $filteredArray]);
 
         if (empty($filteredArray)) {
             $filteredArray = $users;

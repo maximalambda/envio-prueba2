@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getAll, filter, deleteUser } from "./services/UserService";
-import { downloadCSV } from "./services/CSVService";
 import {
   Button,
   Modal,
@@ -10,26 +9,22 @@ import {
   Spinner,
 } from "reactstrap";
 
-import { ExportToCsv } from "export-to-csv";
 import { Link } from "react-router-dom";
 import "./App.css";
 function App() {
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [male, setMale] = useState(false);
   const [female, setFemale] = useState(false);
   const [nationality, setNationality] = useState("");
   const [listNationality, setListNationality] = useState([]);
   const [age, setAge] = useState("");
   const [selectedItems, setSelectedItems] = useState([]);
-  const [csv, setCsv] = useState([]);
   const [modal, setModal] = useState(false);
   const [modalDelete, setModalDelete] = useState(false);
   const [toDelete, setToDelete] = useState('');
-  const [style, setStyle] = useState({ display: "none" });
-
+  const [selectedIds, setSelectedIds] = useState([]);
   useEffect(() => {
     const fetchAll = async () => {
       const data = await getAll();
@@ -42,15 +37,10 @@ function App() {
     };
     fetchAll();
   }, []);
-  const toggleDropdown = () => {
-    setOpen();
-  };
-  const selectedUser = (item) => {
-    console.log(item);
-  };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let query = "";
     let json = {
       name: name ? name : "",
       male: male ? male : "",
@@ -92,58 +82,36 @@ function App() {
       console.log(res);
       setSelectedItems(res);
     }
-    const arrayExport = res.map((item) => {
-      return {
-        name: item.name.first + " " + item.name.last,
-        email: item.email,
-      };
-    });
-    setCsv(arrayExport);
+
+    const exportIDs = res.map((item)=>{
+      return item.login.uuid;
+    })
+    setSelectedIds(exportIDs);
   };
-  const handleConvertToCsv = async () => {};
-  const handleCsv = async (e, done) => {
-    alert("a");
-    done();
-    return (
-      <Modal toggle={function noRefCheck() {}}>
-        <ModalHeader charCode="Y" toggle={function noRefCheck() {}}>
-          Alerta
-        </ModalHeader>
-        <ModalBody>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </ModalBody>
-        <ModalFooter>
-          <Button color="primary" onClick={function noRefCheck() {}}>
-            Do Something
-          </Button>{" "}
-          <Button onClick={function noRefCheck() {}}>Cancel</Button>
-        </ModalFooter>
-      </Modal>
-    );
-  };
+
   const handleProcess = () => {
     setModal(!modal);
 
     setTimeout(() => {
-      const options = {
-        fieldSeparator: ",",
-        quoteStrings: '"',
-        decimalSeparator: ".",
-        showLabels: true,
-        showTitle: true,
-        useTextFile: false,
-        useBom: true,
-        useKeysAsHeaders: true,
-        // headers: ['Column 1', 'Column 2', etc...] <-- Won't work with useKeysAsHeaders present!
-      };
-      const csvExporter = new ExportToCsv(options);
-      csvExporter.generateCsv(csv);
+      const obj = {'ids': selectedIds};
+      const params = new URLSearchParams(obj).toString();
+      var uri = `http://127.0.0.1:8000/api/csv/export?${params}`;
+      var link = document.createElement("a");
+      if (typeof link.download === "string") {
+        link.href = uri;
+        link.setAttribute("download", true);
+
+        //Firefox requires the link to be in the body
+        document.body.appendChild(link);
+
+        //simulate click
+        link.click();
+
+        //remove the link when done
+        document.body.removeChild(link);
+      } else {
+        window.open(uri);
+      }
       setModal(false);
     }, "1000");
   };
